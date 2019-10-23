@@ -34,20 +34,22 @@ int main(int argc, char* argv[]) {
 	if (lineCount > 0) {
 		printf("U fileu se nalazi %d studenata.\n", lineCount);
 		student = (_student*)malloc((sizeof(_student) * lineCount));
-
-		if (loadStudentData(student, lineCount, fileName) >= 0) {
-			maxBodovi = findMaxPoints(student, lineCount);
-			if (maxBodovi > 0) {
-				for (i = 0;i < lineCount;i++) {
-					if (student != NULL) {
-						printf("%s %s %d %.2f\n", student[i].ime, student[i].prezime, student[i].bodovi, calculateRelativePoints(&student[i], maxBodovi));
+		if (student != NULL) {
+			if (loadStudentData(student, lineCount, fileName) >= 0) {
+				maxBodovi = findMaxPoints(student, lineCount);
+				if (maxBodovi > 0) {
+					for (i = 0;i < lineCount;i++) {
+						if (student != NULL) {
+							printf("%s %s %d %.2f\n", student[i].ime, student[i].prezime, student[i].bodovi, calculateRelativePoints(&student[i], maxBodovi));
+						}
 					}
 				}
-			}
-			else {
-				printf("Svi imaju 0 bodova");
+				else {
+					printf("Svi imaju 0 bodova");
+				}
 			}
 		}
+		else return 0;
 	}
 	else printf("Nema studenata");
 

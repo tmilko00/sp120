@@ -23,54 +23,85 @@ typedef struct _node {
 	_osoba osoba;
 }NODE;
 
-NODE* createList(_osoba osoba);
-int addToListEnd(NODE* head, _osoba osoba);//returns >=0 if successful
-NODE* addToListStart(NODE* head, _osoba osoba); //returns new head node
-void printList(NODE* head);
-void printNode(NODE* node);
-NODE* findByName(NODE* head, char* prezime);
-NODE* removeNodeFromList(NODE* head, NODE* node);//returns new/old head if deleted node was head/not
-void deleteList(NODE* head);
+typedef struct _node* Pozicija;
+
+_osoba* allocateOsoba();
+Pozicija allocateNode();
+Pozicija createList();
+int addToListEnd(Pozicija head);//returns >=0 if successful
+int addToListStart(Pozicija head);//returns >=0 if successful 
+void printList(Pozicija head);
+void printNode(Pozicija node);
+Pozicija findByName(Pozicija head);
+int removeNodeFromList(Pozicija head, Pozicija node);
+void deleteList(Pozicija head);
 
 int main(int argc, char* argv[]) {
-
-	_osoba o1 = { "Pero","Djetlic",20 };
-	_osoba o2 = { "Mate","Bakic",80 };
-	_osoba o3 = { "Luka","Lokvic",60 };
-	NODE* list = createList(o1);
-	char prezime[MAX_CHAR] = "Bakic";
-	NODE* newHead = addToListStart(list, o2);
-	addToListEnd(newHead, o3);
-	NODE* item = findByName(newHead, prezime);
-	printNode(item);
-	printf("cijela lista:\n");
-	printList(newHead);
-	newHead=removeNodeFromList(newHead, item);
-	printf("lista nakon izbrisanog clana\n");
-	printList(newHead);
-	deleteList(newHead);
+	int ret = 0;
+	Pozicija list = NULL;
+	list= createList();
+	Pozicija trazi = NULL;
+	addToListStart(list);
+	addToListEnd(list);
+	addToListStart(list);
+	printList(list);
+	trazi = findByName(list);
+	printf("nakon trazenja\n");
+	printNode(trazi);
+	removeNodeFromList(list,trazi);
+	printf("lista nakon brisanja\n");
+	printList(list);
+	deleteList(list);
 
 	return 0;
 }
 
-NODE* createList(_osoba osoba) {
-	NODE* node = (NODE*)(malloc(sizeof(NODE)));
-	if (node != NULL) {
-		node->osoba = osoba;
-		node->nextNode = NULL;
-		return node;
+_osoba* allocateOsoba() {
+	int ret = 0;
+	_osoba* osobaptr= NULL;
+	osobaptr = (_osoba*)malloc(sizeof(_osoba));
+	if (osobaptr != NULL) {
+		printf("Upisi Ime, Prezime, Godinu rodjenja\n");
+		while (ret != 3) {
+			ret = scanf("%s %s %d", osobaptr->ime, osobaptr->prezime, &osobaptr->godinaRodenja);
+			if (ret != 3)printf("Krivo uneseni podatci\n");
+		}
+		return osobaptr;
+	}
+	else return NULL;
+}
+Pozicija allocateNode() {
+	Pozicija newNode = NULL;
+	newNode = (Pozicija)malloc(sizeof(NODE));
+	if (newNode != NULL) {
+		return newNode;
 	}
 	else return NULL;
 }
 
-int addToListEnd(NODE* head, _osoba osoba) {
+Pozicija createList() {
+	Pozicija head = NULL;
+	head = allocateNode();
+	if (head != NULL) {
+		head->nextNode = NULL;
+		return head;
+	}
+	else return NULL;
+}
 
-	NODE* node = (NODE*)(malloc(sizeof(NODE)));
-	NODE* nodeptr = NULL;
-	if (node != NULL) {
-		node->osoba = osoba;
+int addToListEnd(Pozicija head) {
+
+	Pozicija node = NULL;
+	Pozicija nodeptr = NULL;
+	_osoba* novaOsoba = NULL;
+
+	node = allocateNode();
+	novaOsoba = allocateOsoba();
+
+	if (node != NULL && head->nextNode!=NULL) {
+		node->osoba = *novaOsoba;
 		node->nextNode = NULL;
-		nodeptr = head;
+		nodeptr = head->nextNode;
 		while (nodeptr->nextNode != NULL) {
 			nodeptr = nodeptr->nextNode;
 		}
@@ -80,32 +111,39 @@ int addToListEnd(NODE* head, _osoba osoba) {
 	return -1;
 }
 
-NODE* addToListStart(NODE* prevHead, _osoba osoba) {
+int addToListStart(Pozicija head) {
+	
+	Pozicija node =NULL;
+	_osoba* novaOsoba = NULL;
 
-	NODE* node = (NODE*)(malloc(sizeof(NODE)));
-	if (node != NULL) {
-		node->osoba = osoba;
-		node->nextNode = prevHead;
-		return node;
+	node = allocateNode();
+	novaOsoba = allocateOsoba();
+
+	if ((node != NULL) && (head!=NULL)) {
+		node->osoba = *novaOsoba;
+		node->nextNode = head->nextNode;
+		head->nextNode = node;
+		return 0;
 	}
-	else return NULL;
+	else return -1;
 }
 
-void printList(NODE* head) {
+void printList(Pozicija head) {
 
-	NODE* nodeptr = head;
-	if (head != NULL) {
+	Pozicija nodeptr = NULL;
+	if (head->nextNode != NULL) {
+		nodeptr = head->nextNode;
 		while (nodeptr->nextNode != NULL) {
-			printf("Osoba %s %s %d\n", nodeptr->osoba.ime, nodeptr->osoba.prezime, nodeptr->osoba.godinaRodenja);
+			printNode(nodeptr);
 			nodeptr = nodeptr->nextNode;
 		}
 		//print last item
-		printf("Osoba %s %s %d\n", nodeptr->osoba.ime, nodeptr->osoba.prezime, nodeptr->osoba.godinaRodenja);
+		printNode(nodeptr);
 	}
-	else printf("Error, got NULL as node head\n");
+	else printf("Error, no nodes");
 }
 
-void printNode(NODE* node) {
+void printNode(Pozicija node) {
 	if (node != NULL) {
 		printf("%s %s %d\n", node->osoba.ime, node->osoba.prezime, node->osoba.godinaRodenja);
 	}
@@ -113,9 +151,15 @@ void printNode(NODE* node) {
 }
 
 
-NODE* findByName(NODE* head, char* prezime) {
-
-	NODE* nodeptr = head;
+Pozicija findByName(Pozicija head) {
+	int ret = 0;
+	Pozicija nodeptr = head->nextNode;
+	char prezime[MAX_CHAR] = {0};
+	printf("Upisi prezime osobe koju trazis\n");
+	while (ret!=1) {
+		ret=scanf("%s",prezime);
+		if (ret != 1)printf("Need 1 argument\n");
+	}
 	if (nodeptr != NULL) {
 		while (nodeptr->nextNode != NULL) {
 			if (strcmp(nodeptr->osoba.prezime, prezime) == 0) {
@@ -131,37 +175,37 @@ NODE* findByName(NODE* head, char* prezime) {
 	}
 	else return NULL;
 }
-NODE* removeNodeFromList(NODE* head, NODE* node) {
-	NODE* nodeptr = head;
-	NODE* newHead = NULL;
-	if ((head != NULL) && (node != NULL)) {
-		if (head == node) {
-			newHead = head->nextNode;
-			free(head);
-			return newHead;
+int removeNodeFromList(Pozicija head, Pozicija node) {
+	if (head == NULL||node==NULL) return -1;
+	
+	Pozicija nodeptr = head->nextNode;
+	
+	if (nodeptr != NULL) {
+		if (nodeptr == node) {
+			head->nextNode = nodeptr->nextNode;
+			return 0;
 		}
-		else {
-			while (nodeptr->nextNode != node) {
-				nodeptr = nodeptr->nextNode;
-				//nesto je fked sa ovin redon iznad ja msn
-			}
+		while (nodeptr->nextNode != NULL) {
 			if (nodeptr->nextNode == node) {
 				nodeptr->nextNode = node->nextNode;
 				free(node);
-				return head;
+				return 0;
 			}
-			else {
-				printf("No node");
-				return head;
-			}
+			nodeptr = nodeptr->nextNode;
 		}
+		return -1;
 	}
-	else return head;
+	else {
+		printf("No node\n");
+		return -1;
+	}
+		
+
 }
 
-void deleteList(NODE* head) {
-	NODE* nodeptr = head;
-	NODE* nodeToClear = NULL;
+void deleteList(Pozicija head) {
+	Pozicija nodeptr = head;
+	Pozicija nodeToClear = NULL;
 	if (nodeptr != NULL) {
 		while (nodeptr->nextNode != NULL) {
 			nodeToClear = nodeptr;
@@ -170,5 +214,5 @@ void deleteList(NODE* head) {
 		}
 		free(nodeptr);
 	}
-	else printf("List head is NULL");
+	else printf("List head is NULL\n");
 }
