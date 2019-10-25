@@ -7,6 +7,14 @@ d)pronalazi element u listi (po prezimenu)
 e)briše odreðeni element iz liste
 U zadatku se ne smiju koristiti globalne varijable.*/
 
+//Prethodnom zadatku dodati funkcije:
+//a) dinamicki dodaje novi element iza odredenog elementa, 
+//b) dinamicki dodaje novi element ispred odredenog elementa, 
+//c) sortira listu po prezimenima osoba,
+//d) upisuje listu u datoteku,
+//e) cita listu iz datoteke. 
+
+
 #define _CRT_SECURE_NO_WARNINGS
 #define MAX_CHAR (100)
 #include<stdio.h>
@@ -35,6 +43,7 @@ void printNode(Pozicija node);
 Pozicija findByName(Pozicija head);
 int removeNodeFromList(Pozicija head, Pozicija node);
 void deleteList(Pozicija head);
+void addAfterNode(Pozicija);
 
 int main(int argc, char* argv[]) {
 	int ret = 0;
@@ -61,8 +70,8 @@ _osoba* allocateOsoba() {
 	_osoba* osobaptr= NULL;
 	osobaptr = (_osoba*)malloc(sizeof(_osoba));
 	if (osobaptr != NULL) {
-		printf("Upisi Ime, Prezime, Godinu rodjenja\n");
 		while (ret != 3) {
+			printf("Upisi Ime, Prezime, Godinu rodjenja\n");
 			ret = scanf("%s %s %d", osobaptr->ime, osobaptr->prezime, &osobaptr->godinaRodenja);
 			if (ret != 3)printf("Krivo uneseni podatci\n");
 		}
@@ -98,10 +107,10 @@ int addToListEnd(Pozicija head) {
 	node = allocateNode();
 	novaOsoba = allocateOsoba();
 
-	if (node != NULL && head->nextNode!=NULL) {
+	if (node != NULL) {
 		node->osoba = *novaOsoba;
 		node->nextNode = NULL;
-		nodeptr = head->nextNode;
+		nodeptr = head;
 		while (nodeptr->nextNode != NULL) {
 			nodeptr = nodeptr->nextNode;
 		}
@@ -131,14 +140,12 @@ int addToListStart(Pozicija head) {
 void printList(Pozicija head) {
 
 	Pozicija nodeptr = NULL;
-	if (head->nextNode != NULL) {
-		nodeptr = head->nextNode;
+	nodeptr = head;
+	if (nodeptr->nextNode != NULL) {
 		while (nodeptr->nextNode != NULL) {
-			printNode(nodeptr);
 			nodeptr = nodeptr->nextNode;
+			printNode(nodeptr);
 		}
-		//print last item
-		printNode(nodeptr);
 	}
 	else printf("Error, no nodes");
 }
@@ -153,50 +160,43 @@ void printNode(Pozicija node) {
 
 Pozicija findByName(Pozicija head) {
 	int ret = 0;
-	Pozicija nodeptr = head->nextNode;
+	Pozicija nodeptr = head;
 	char prezime[MAX_CHAR] = {0};
-	printf("Upisi prezime osobe koju trazis\n");
-	while (ret!=1) {
-		ret=scanf("%s",prezime);
-		if (ret != 1)printf("Need 1 argument\n");
-	}
-	if (nodeptr != NULL) {
+	if (nodeptr->nextNode != NULL) {
+		printf("Upisi prezime osobe koju trazis\n");
+		while (ret != 1) {
+			ret = scanf("%s", prezime);
+			if (ret != 1)printf("Need 1 argument\n");
+		}
 		while (nodeptr->nextNode != NULL) {
+			nodeptr = nodeptr->nextNode;
 			if (strcmp(nodeptr->osoba.prezime, prezime) == 0) {
 				return nodeptr;
 			}
-			nodeptr = nodeptr->nextNode;
 		}
-		//check last element
-		if (strcmp(nodeptr->osoba.prezime, prezime) == 0) {
-			return nodeptr;
-		}
-		else return NULL;
+		return NULL;
 	}
 	else return NULL;
 }
 int removeNodeFromList(Pozicija head, Pozicija node) {
 	if (head == NULL||node==NULL) return -1;
 	
-	Pozicija nodeptr = head->nextNode;
-	
+	Pozicija nodeptr = head;
+	Pozicija elemBefore = NULL;
 	if (nodeptr != NULL) {
-		if (nodeptr == node) {
-			head->nextNode = nodeptr->nextNode;
-			return 0;
-		}
 		while (nodeptr->nextNode != NULL) {
-			if (nodeptr->nextNode == node) {
-				nodeptr->nextNode = node->nextNode;
+			elemBefore = nodeptr;
+			nodeptr = nodeptr->nextNode;
+			if (nodeptr == node) {
+				elemBefore->nextNode = nodeptr->nextNode;
 				free(node);
 				return 0;
 			}
-			nodeptr = nodeptr->nextNode;
 		}
 		return -1;
 	}
 	else {
-		printf("No node\n");
+		printf("No nodes\n");
 		return -1;
 	}
 		
@@ -215,4 +215,16 @@ void deleteList(Pozicija head) {
 		free(nodeptr);
 	}
 	else printf("List head is NULL\n");
+}
+void addAfterNode(Pozicija node) {
+	Pozicija newNode = NULL;
+	_osoba* newOsoba = NULL;
+	newNode = allocateNode();
+	newOsoba = allocateOsoba();
+	if (node != NULL && newNode != NULL) {
+		newNode->osoba = *newOsoba;
+		newNode->nextNode = node->nextNode;
+		node->nextNode = newNode;
+	}
+	else printf("node is null");
 }
