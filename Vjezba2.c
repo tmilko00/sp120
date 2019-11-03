@@ -20,7 +20,8 @@ U zadatku se ne smiju koristiti globalne varijable.*/
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-typedef struct {
+
+typedef struct osoba{
 	char ime[MAX_CHAR];
 	char prezime[MAX_CHAR];
 	int godinaRodenja;
@@ -36,7 +37,7 @@ typedef struct _node* Pozicija;
 _osoba* allocateOsoba();
 Pozicija allocateNode();
 Pozicija createList();
-int addToListEnd(Pozicija head);//returns >=0 if successful
+int addToListEnd(Pozicija,Pozicija);//returns >=0 if successful
 int addToListStart(Pozicija head);//returns >=0 if successful 
 void printList(Pozicija head);
 void printNode(Pozicija node);
@@ -44,24 +45,47 @@ Pozicija findByName(Pozicija head);
 int removeNodeFromList(Pozicija head, Pozicija node);
 void deleteList(Pozicija head);
 void addAfterNode(Pozicija);
+int sortList(Pozicija);
+int countListElements(Pozicija);
+Pozicija mergeSort(Pozicija);
+Pozicija merge(Pozicija, Pozicija);
+Pozicija findRightSide(Pozicija,int);
+Pozicija findLeftSide(Pozicija, Pozicija);
+int printListToFile(Pozicija,char*);
+int readListFromFile(Pozicija, char*);
 
 int main(int argc, char* argv[]) {
 	int ret = 0;
 	Pozicija list = NULL;
-	list= createList();
 	Pozicija trazi = NULL;
+	/*list= createList();
 	addToListStart(list);
-	addToListEnd(list);
+	addToListEnd(list,NULL);
 	addToListStart(list);
 	printList(list);
-	trazi = findByName(list);
-	printf("nakon trazenja\n");
-	printNode(trazi);
-	removeNodeFromList(list,trazi);
-	printf("lista nakon brisanja\n");
+	printf("-------prije sorta\n");
 	printList(list);
-	deleteList(list);
-
+	sortList(list);
+	printf("--------nakon sortanja\n");
+	printList(list);
+	printListToFile("potato", list);
+	*/
+	printf("Prije sorta\n\n");
+	Pozicija novilist = createList();
+	readListFromFile(novilist, "./studentinew.txt");
+	printList(novilist);
+	printf("\nNakon sorta\n\n");
+	sortList(novilist);
+	printList(novilist);
+	printListToFile(novilist,"./studenti_print.txt");
+//	trazi = findByName(list);
+	//printf("nakon trazenja\n");
+	//printNode(trazi);
+	//removeNodeFromList(list,trazi);
+	//printf("lista nakon brisanja\n");
+	//printList(list);
+	deleteList(novilist);
+	
 	return 0;
 }
 
@@ -98,23 +122,36 @@ Pozicija createList() {
 	else return NULL;
 }
 
-int addToListEnd(Pozicija head) {
+int addToListEnd(Pozicija head, Pozicija nodeToAdd) {
 
 	Pozicija node = NULL;
 	Pozicija nodeptr = NULL;
+	Pozicija newNode = allocateNode();
 	_osoba* novaOsoba = NULL;
+	if (nodeToAdd == NULL) {
+		node = allocateNode();
+		novaOsoba = allocateOsoba();
 
-	node = allocateNode();
-	novaOsoba = allocateOsoba();
-
-	if (node != NULL) {
-		node->osoba = *novaOsoba;
-		node->nextNode = NULL;
+		if (node != NULL) {
+			node->osoba = *novaOsoba;
+			node->nextNode = NULL;
+			nodeptr = head;
+			while (nodeptr->nextNode != NULL) {
+				nodeptr = nodeptr->nextNode;
+			}
+			nodeptr->nextNode = node;
+			return 0;
+		}
+	}
+	else {
+		newNode->nextNode = NULL;
+		newNode->osoba = nodeToAdd->osoba;
 		nodeptr = head;
 		while (nodeptr->nextNode != NULL) {
-			nodeptr = nodeptr->nextNode;
+				nodeptr = nodeptr->nextNode;
 		}
-		nodeptr->nextNode = node;
+		nodeptr->nextNode =newNode;
+
 		return 0;
 	}
 	return -1;
@@ -140,14 +177,15 @@ int addToListStart(Pozicija head) {
 void printList(Pozicija head) {
 
 	Pozicija nodeptr = NULL;
-	nodeptr = head;
-	if (nodeptr->nextNode != NULL) {
-		while (nodeptr->nextNode != NULL) {
-			nodeptr = nodeptr->nextNode;
-			printNode(nodeptr);
-		}
+	nodeptr = head->nextNode;
+	if (nodeptr == NULL) {
+		printf("Error, no nodes");
+		return;
 	}
-	else printf("Error, no nodes");
+	while (nodeptr != NULL) {
+		printNode(nodeptr);
+		nodeptr = nodeptr->nextNode;
+	}
 }
 
 void printNode(Pozicija node) {
@@ -227,4 +265,156 @@ void addAfterNode(Pozicija node) {
 		node->nextNode = newNode;
 	}
 	else printf("node is null");
+}
+
+int countListElements(Pozicija head)
+{
+	
+	if (head == NULL) {
+		printf("head is null");
+		return -1;
+	}
+	int numOfElements = 0;
+	Pozicija element = head->nextNode;
+	if (element == NULL) {
+		printf("no items in list");
+		return 0;
+	}
+	while (element != NULL) {
+		numOfElements++;
+		element = element->nextNode;
+	}
+	return numOfElements;
+}
+
+int sortList(Pozicija head) {
+	if (head == NULL) return -1;
+	Pozicija sortedList = NULL;
+	sortedList = mergeSort(head);
+	head->nextNode = sortedList->nextNode;
+	return 0;
+	
+}
+Pozicija mergeSort(Pozicija head) {
+	if (head == NULL) return NULL;
+	Pozicija lSide = head;
+	Pozicija rSide = NULL;
+	int	numOfElem = countListElements(head);
+	if (numOfElem == 0) {
+		printf("List has 0 elements");
+		return head;
+	}
+	else if (numOfElem == 1) {
+		head->nextNode->nextNode = NULL;
+		//printf("list leng 1");
+		//printList(head);
+		return head;
+	}
+	rSide = findRightSide(head,numOfElem/2);
+	lSide = findLeftSide(head, rSide);
+	lSide = mergeSort(lSide);
+	rSide = mergeSort(rSide);
+	//printf("prije mergea lside i rside\n\n");
+	//printList(lSide);
+	//printList(rSide);
+	return merge(lSide, rSide);
+}
+Pozicija merge(Pozicija lSide, Pozicija rSide) {
+	Pozicija lIter = lSide->nextNode;
+	Pozicija rIter = rSide->nextNode;
+	//printf("UMERGE liter\n");
+	//printList(lSide);
+	//printf("UMERGE riter\n");
+	//printList(rSide);
+	Pozicija list = createList();
+	while (lIter != NULL) {
+		if (rIter != NULL) {
+			if (strcmp(lIter->osoba.prezime, rIter->osoba.prezime) < 0) {
+				addToListEnd(list,lIter);
+				lIter = lIter->nextNode;
+			}
+			else {
+				addToListEnd(list,rIter);
+				rIter = rIter->nextNode;
+				
+			}
+		}
+		else {
+			addToListEnd(list, lIter);
+			lIter = lIter->nextNode;
+		}
+	}
+	while (rIter != NULL) {
+		addToListEnd(list,rIter);
+		rIter = rIter->nextNode;
+	}
+	//printf("LISTNAKRAJUPRIJERETURNA\n");
+	//printList(list);
+	return list;
+}
+Pozicija findRightSide(Pozicija head,int nodePos) {
+	if (head->nextNode == NULL) return head;
+	if (nodePos == 0)return head;
+	int currNode = 0;
+	Pozicija list = createList();
+	Pozicija prevNode = NULL;
+	Pozicija nodeptr = head->nextNode;
+	while (nodeptr != NULL) {
+		if (currNode == nodePos) {
+			prevNode->nextNode = NULL;
+			list->nextNode = nodeptr;
+			return list;
+		}
+		currNode++;
+		prevNode = nodeptr;
+		nodeptr=nodeptr->nextNode;
+	}
+	return list;
+}
+Pozicija findLeftSide(Pozicija head, Pozicija lastNode) {
+	Pozicija nodeptr = NULL;
+	nodeptr = head;
+	if (nodeptr->nextNode == NULL)return head;
+	while (nodeptr != NULL) {
+		if (nodeptr->nextNode==lastNode) {
+			nodeptr->nextNode = NULL;
+		}
+		nodeptr = nodeptr->nextNode;
+	}
+	return head;
+}
+int printListToFile(Pozicija head,char* fileName) {
+	FILE* fp = NULL;
+	Pozicija nodeptr = head->nextNode;
+	if (nodeptr != NULL) {
+		fp = fopen(fileName, "w");
+		if (fp != NULL) {
+			while (nodeptr != NULL) {
+				fprintf(fp, "%s %s %d\n", nodeptr->osoba.ime, nodeptr->osoba.prezime, nodeptr->osoba.godinaRodenja);
+				nodeptr = nodeptr->nextNode;
+			}
+			fclose(fp);
+			return 0;
+		}
+		return -1;
+	}
+	return -1;
+}
+int readListFromFile(Pozicija head, char* fileName) {
+	FILE* fp = NULL;
+	Pozicija nodeToAdd = NULL;
+	char str[256] = { 0 };
+	if (head != NULL) {
+		fp = fopen(fileName, "r");
+		if (fp == NULL)return-1;
+		while (fgets(str,sizeof(str),fp)){
+			nodeToAdd = allocateNode();
+			sscanf(str,"%s %s %d",nodeToAdd->osoba.ime,nodeToAdd->osoba.prezime,&nodeToAdd->osoba.godinaRodenja);
+			addToListEnd(head, nodeToAdd);
+			nodeToAdd = NULL;
+		}
+		fclose(fp);
+		return 0;
+	}
+	return -1;
 }
