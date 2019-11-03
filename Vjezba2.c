@@ -45,6 +45,7 @@ Pozicija findByName(Pozicija head);
 int removeNodeFromList(Pozicija head, Pozicija node);
 void deleteList(Pozicija head);
 void addAfterNode(Pozicija);
+void addBeforeNode(Pozicija,Pozicija);
 int sortList(Pozicija);
 int countListElements(Pozicija);
 Pozicija mergeSort(Pozicija);
@@ -266,7 +267,28 @@ void addAfterNode(Pozicija node) {
 	}
 	else printf("node is null");
 }
+void addBeforeNode(Pozicija head,Pozicija node) {
+	Pozicija nodeptr = head;
+	Pozicija newNode = NULL;
+	newNode = allocateNode();
+	if (newNode == NULL) {
+		printf("cant allocate new node");
+		return;
+	}
+	if (head == NULL || node == NULL) {
+		printf("nodes are null");
+		return;
+	}
+	while (nodeptr->nextNode != NULL) {
+		if (nodeptr->nextNode == node) {
+			nodeptr->nextNode = newNode;
+			newNode->nextNode = node;
+			return;
+		}
+		nodeptr = nodeptr->nextNode;
+	}
 
+}
 int countListElements(Pozicija head)
 {
 	
