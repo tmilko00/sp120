@@ -3,7 +3,7 @@
 Napisati program koji pomoæu vezanih listi (stabala) predstavlja strukturu direktorija.
 Omoguæiti unos novih direktorija i pod-direktorija, ispis sadržaja direktorija i povratak u prethodni direktorij.
 Toènije program treba preko menija simulirati korištenje DOS naredbi: 1-"md", 2 -"cd dir", 3 -"cd..",4 -"dir"i5 –izlaz
- 
+*/
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<stdlib.h>
@@ -256,4 +256,3 @@ void deleteList(Pos head) {
         free(nodeToDelete);
     }
 }
-*/
